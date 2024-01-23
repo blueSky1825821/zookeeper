@@ -432,9 +432,9 @@ public class Leader extends LearnerMaster {
      * Similar to INFORM, only for a reconfig operation.
      */
     static final int INFORMANDACTIVATE = 19;
-
+    //数据结构储存的是propose后还未commit的事务
     final ConcurrentMap<Long, Proposal> outstandingProposals = new ConcurrentHashMap<>();
-
+    //储存的是commit了但是还未真正执行的事务
     private final ConcurrentLinkedQueue<Proposal> toBeApplied = new ConcurrentLinkedQueue<>();
 
     // VisibleForTesting
@@ -517,13 +517,15 @@ public class Leader extends LearnerMaster {
                 Socket socket = null;
                 boolean error = false;
                 try {
+                    //从serversocket中获取连接
                     socket = serverSocket.accept();
 
                     // start with the initLimit, once the ack is processed
                     // in LearnerHandler switch to the syncLimit
                     socket.setSoTimeout(self.tickTime * self.initLimit);
+                    //禁用delay算法
                     socket.setTcpNoDelay(nodelay);
-
+                    //读取socket中的数据
                     BufferedInputStream is = new BufferedInputStream(socket.getInputStream());
                     LearnerHandler fh = new LearnerHandler(socket, is, Leader.this);
                     fh.start();
@@ -598,11 +600,12 @@ public class Leader extends LearnerMaster {
             self.setZabState(QuorumPeer.ZabState.DISCOVERY);
             self.tick.set(0);
             zk.loadData();
-
+            //封装有状态比较逻辑的对象
             leaderStateSummary = new StateSummary(self.getCurrentEpoch(), zk.getLastProcessedZxid());
 
             // Start thread that waits for connection requests from
             // new followers.
+            //新的followers连接
             cnxAcceptor = new LearnerCnxAcceptor();
             cnxAcceptor.start();
 
@@ -691,7 +694,7 @@ public class Leader extends LearnerMaster {
                 }
                 return;
             }
-
+            //启动server
             startZkServer();
 
             /**
@@ -979,6 +982,7 @@ public class Leader extends LearnerMaster {
             commit(zxid);
             inform(p);
         }
+        //异步？？？
         zk.commitProcessor.commit(p.request);
         if (pendingSyncs.containsKey(zxid)) {
             for (LearnerSyncRequest r : pendingSyncs.remove(zxid)) {

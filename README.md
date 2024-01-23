@@ -56,3 +56,9 @@ We always welcome new contributors to the project! See [How to Contribute](https
 [mcLink]: https://zookeeper.apache.org/releases
 [trBadge]: https://travis-ci.org/apache/zookeeper.svg?branch=master
 [trLink]: https://travis-ci.org/apache/zookeeper
+
+
+```
+如果编译报错需要执行：
+mvn clean package -DskipTests
+```

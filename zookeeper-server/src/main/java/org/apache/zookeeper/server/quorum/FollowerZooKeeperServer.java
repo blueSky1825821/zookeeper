@@ -68,11 +68,15 @@ public class FollowerZooKeeperServer extends LearnerZooKeeperServer {
 
     @Override
     protected void setupRequestProcessors() {
+        // 创建finalProcessor，提交提案或响应查询
         RequestProcessor finalProcessor = new FinalRequestProcessor(this);
+        // 创建commitProcessor，处理提案提交或读请求
         commitProcessor = new CommitProcessor(finalProcessor, Long.toString(getServerId()), true, getZooKeeperServerListener());
         commitProcessor.start();
+        // 创建firstProcessor，接收发给跟随者的请求
         firstProcessor = new FollowerRequestProcessor(this, commitProcessor);
         ((FollowerRequestProcessor) firstProcessor).start();
+        // 创建syncProcessor，将提案持久化存储，并返回确认响应给领导者
         syncProcessor = new SyncRequestProcessor(this, new SendAckRequestProcessor(getFollower()));
         syncProcessor.start();
     }

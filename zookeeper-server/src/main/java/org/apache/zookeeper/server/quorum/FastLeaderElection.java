@@ -937,7 +937,7 @@ public class FastLeaderElection implements Election {
             Map<Long, Vote> outofelection = new HashMap<>();
 
             int notTimeout = minNotificationInterval;
-
+            //follower进入选举之前会将本地没有提交的事务全部提交?
             synchronized (this) {
                 logicalclock.incrementAndGet();
                 updateProposal(getInitId(), getInitLastLoggedZxid(), getPeerEpoch());

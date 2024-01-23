@@ -842,6 +842,7 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
                         Vote current = getCurrentVote();
                         switch (getPeerState()) {
                         case LOOKING:
+                            //未提交的vote都需要提交
                             responseBuffer.putLong(current.getId());
                             responseBuffer.putLong(current.getZxid());
                             break;
@@ -1132,15 +1133,19 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
         if (!getView().containsKey(myid)) {
             throw new RuntimeException("My id " + myid + " not in the peer list");
         }
+        //从磁盘中加载数据到内存中
         loadDataBase();
+        //启动上下文的这个工厂，他是个线程类, 接受客户端的请求 默认NIOServerCnxnFactory
         startServerCnxnFactory();
         try {
             adminServer.start();
         } catch (AdminServerException e) {
             LOG.warn("Problem starting AdminServer", e);
         }
+        //开启leader的选举工作
         startLeaderElection();
         startJvmPauseMonitor();
+        //run()
         super.start();
     }
 
